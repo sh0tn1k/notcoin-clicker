@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/notcoin-clicker/static/css/main.c9c368ba.css",
+    "main.js": "/notcoin-clicker/static/js/main.2663fdcf.js",
+    "static/media/notcoin.png": "/notcoin-clicker/static/media/notcoin.e1b7132d8f3df85a2749.png",
+    "index.html": "/notcoin-clicker/index.html",
+    "main.c9c368ba.css.map": "/notcoin-clicker/static/css/main.c9c368ba.css.map",
+    "main.2663fdcf.js.map": "/notcoin-clicker/static/js/main.2663fdcf.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.c9c368ba.css",
+    "static/js/main.2663fdcf.js"
+  ]
+}
