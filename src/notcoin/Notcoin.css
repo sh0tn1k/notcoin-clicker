@@ -83,6 +83,27 @@
   font-size: 25px;
 }
 
+.transparent-blur-button {
+  background-color: rgba(0, 0, 0, 0.2); /* Прозрачный черный цвет */
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  outline: none;
+  cursor: pointer;
+  opacity: 0.8; /* Прозрачность 80% */
+  backdrop-filter: blur(1px); /* Размытие фона */
+  border-radius: 10px;
+}
+
+.badge {
+  border: none;
+  color: white;
+  font-size: 12px;
+  opacity: 0.8; /* Прозрачность 80% */
+}
+
+
 .sleep {
   filter: brightness(0.8) grayscale(1);
 }

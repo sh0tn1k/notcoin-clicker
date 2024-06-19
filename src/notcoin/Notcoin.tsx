@@ -83,8 +83,15 @@ export const Notcoin = ({
     rotateX: 0,
     rotateY: 0,
   })
-  const plusLimitValue = 3
-  const [multitap, setMultitap] = useState<number>(1); // Initial value for multitap
+  const tg = window.Telegram.WebApp;
+  const [plusLimitValue, setSpeedLimit] = useState<number>(() => {
+    const savedPlusLimitValue = localStorage.getItem('plusLimitValue');
+    return savedPlusLimitValue ? parseInt(savedPlusLimitValue, 10) : 5;
+  });
+  const [multitap, setMultitap] = useState<number>(() => {
+    const savedMultitap = localStorage.getItem('multitap');
+    return savedMultitap ? parseInt(savedMultitap, 10) : 500;
+  });
   const [numbers, setNumbers] = useState<NumberInfo[]>([])
   const [totalClicks, setTotalClicks] = useState<number>(() => {
     const savedTotalClicks = localStorage.getItem('totalClicks');
@@ -96,20 +103,40 @@ export const Notcoin = ({
   })
   const [clickLimit, setClickLimit] = useState<number>(() => {
     const savedClickLimit = localStorage.getItem('clickLimit');
-    return savedClickLimit ? parseInt(savedClickLimit, 10) : 1000;
+    return savedClickLimit ? parseInt(savedClickLimit, 10) : 1000000;
   });
 
-  const maxClicks = 1000; // Max clicks allowed
+  const [maxClicks, setMaxClicks] = useState<number>(() => {
+    const savedMaxClicks = localStorage.getItem('maxClicks');
+    return savedMaxClicks ? parseInt(savedMaxClicks, 10) : 1000000;
+  }); // Max clicks allowed
+
+  const [multitapLevel, setMultitapLevel] = useState<number>(() => {
+    const savedMultitapLevel = localStorage.getItem('multitapLevel');
+    return savedMultitapLevel ? parseInt(savedMultitapLevel, 10) : 1;
+  });
+
+  const [enegryLevel, setEnegryLevel] = useState<number>(() => {
+    const savedEnegryLevel = localStorage.getItem('enegryLevel');
+    return savedEnegryLevel ? parseInt(savedEnegryLevel, 10) : 1;
+  });
+
+  const [speedLevel, setSpeedLevel] = useState<number>(() => {
+    const savedSpeedLevel = localStorage.getItem('speedLevel');
+    return savedSpeedLevel ? parseInt(savedSpeedLevel, 10) : 1;
+  });
 
   // Define the thresholds for each rank
   const rankThresholds = [
-    { rank: "Bronze", threshold: 1000 },
-    { rank: "Silver", threshold: 5000 },
-    { rank: "Gold", threshold: 10000 },
-    { rank: "Platinum", threshold: 50000 },
-    { rank: "Diamond", threshold: 100000 }
+    { rank: "Bronze", threshold: 1000, reward: 0},
+    { rank: "Silver", threshold: 5000, reward: 125000},
+    { rank: "Gold", threshold: 200000, reward: 250000 },
+    { rank: "Platinum", threshold: 2000000, reward: 500000},
+    { rank: "Diamond", threshold: 10000000, reward: 1000000}
     // Add more ranks and thresholds as needed
   ];
+
+  const isgiveRef = useRef(rankThresholds.map(() => false));
 
   // Interval to automatically replenish clickLimit
   useEffect(() => {
@@ -120,7 +147,7 @@ export const Notcoin = ({
           return newLimit > maxClicks ? maxClicks : newLimit;
         });
       }
-    }, 1500); // 1000ms = 1 second
+    }, 1000); // 1000ms = 1 second
 
     return () => clearInterval(replenishInterval);
   }, [clickLimit]);
@@ -128,8 +155,10 @@ export const Notcoin = ({
   useEffect(() => {
     // Determine the current rank based on totalClicks
     for (let i = rankThresholds.length - 1; i >= 0; i--) {
-      if (totalClicks >= rankThresholds[i].threshold) {
+      if (totalClicks >= rankThresholds[i].threshold && !isgiveRef.current[i]) {
         setRank(rankThresholds[i].rank);
+        setTotalClicks(prevTotalClicks => prevTotalClicks + rankThresholds[i].reward);
+        isgiveRef.current[i] = true;
         break;
       }
     }
@@ -143,12 +172,42 @@ export const Notcoin = ({
   }, [rank]);
 
   useEffect(() => {
+    // Save multitap to localStorage
+    localStorage.setItem('multitap', multitap.toString());
+  }, [multitap]);
+
+  useEffect(() => {
     // Save click limit to localStorage
     localStorage.setItem('clickLimit', clickLimit.toString());
   }, [clickLimit]);
 
+  useEffect(() => {
+    // Save click limit to localStorage
+    localStorage.setItem('maxClicks', maxClicks.toString());
+  }, [maxClicks]);
+
+  useEffect(() => {
+    // Save click limit to localStorage
+    localStorage.setItem('plusLimitValue', plusLimitValue.toString());
+  }, [plusLimitValue]);
+
+  useEffect(() => {
+    // Save click limit to localStorage
+    localStorage.setItem('multitapLevel', multitapLevel.toString());
+  }, [multitapLevel]);
+
+  useEffect(() => {
+    // Save click limit to localStorage
+    localStorage.setItem('enegryLevel', enegryLevel.toString());
+  }, [enegryLevel]);
+
+  useEffect(() => {
+    // Save click limit to localStorage
+    localStorage.setItem('speedLevel', speedLevel.toString());
+  }, [speedLevel]);
+
   const handleTouchStart = (event: any) => {
-    if (clickLimit <= 0) return; // Prevent clicking if limit is reached
+    if (clickLimit >= 0 && clickLimit < multitap) return; // Prevent clicking if limit is reached
 
     handleClick()
 
@@ -203,10 +262,97 @@ export const Notcoin = ({
     })
   }
 
+  // Функция для увеличения уровня и изменения цены
   const handleMultitapIncrease = () => {
-    if (totalClicks >= 1000) {
-      setTotalClicks(prevTotalClicks => prevTotalClicks - 1000)
-      setMultitap((prevMultitap) => prevMultitap + 1);
+    // Здесь можно задать структуру уровней и цен
+    const maxLevel = 10
+    const levelData = [
+      { level: 1, price: 100, upcount: 1 },
+      { level: 2, price: 1000, upcount: 2 },
+      { level: 3, price: 5000, upcount: 3 },
+      { level: 4, price: 10000, upcount: 4 },
+      { level: 5, price: 15000, upcount: 5 },
+      { level: 6, price: 30000, upcount: 6 },
+      { level: 7, price: 100000, upcount: 7 },
+      { level: 8, price: 200000, upcount: 8 },
+      { level: 9, price: 500000, upcount: 9 },
+      { level: 10, price: 1000000, upcount: 10 },
+      // Добавьте другие уровни и цены по мере необходимости
+    ];
+
+    // Находим текущий уровень в массиве данных
+    const currentLevel = levelData.find((data) => data.level === multitapLevel);
+
+    if (currentLevel && multitapLevel < maxLevel) {
+      // Увеличиваем уровень на 1
+      setMultitapLevel((prevLevel) => prevLevel + 1);
+      
+      // Вычитаем цену из общего количества кликов
+      setTotalClicks((prevClicks) => prevClicks - currentLevel.price);
+
+      setMultitap((prevMultitap) => prevMultitap + currentLevel.upcount);
+    }
+  };
+
+  const handleEnegryIncrease = () => {
+    // Здесь можно задать структуру уровней и цен
+    const maxLevel = 10
+    const levelData = [
+      { level: 1, price: 100, upcount: 500 },
+      { level: 2, price: 500, upcount: 500 },
+      { level: 3, price: 1000, upcount: 500 },
+      { level: 4, price: 5000, upcount: 500 },
+      { level: 5, price: 10000, upcount: 1000 },
+      { level: 6, price: 20000, upcount: 1000 },
+      { level: 7, price: 80000, upcount: 1000 },
+      { level: 8, price: 100000, upcount: 5000 },
+      { level: 9, price: 200000, upcount: 5000 },
+      { level: 10, price: 300000, upcount: 5000 },
+      // Добавьте другие уровни и цены по мере необходимости
+    ];
+
+    // Находим текущий уровень в массиве данных
+    const currentLevel = levelData.find((data) => data.level === enegryLevel);
+
+    if (currentLevel && enegryLevel < maxLevel) {
+      // Увеличиваем уровень на 1
+      setEnegryLevel((prevLevel) => prevLevel + 1);
+      
+      // Вычитаем цену из общего количества кликов
+      setTotalClicks((prevClicks) => prevClicks - currentLevel.price);
+
+      setMaxClicks((prevMaxClicks) => prevMaxClicks + currentLevel.upcount);
+    }
+  };
+
+  const handleSpeedIncrease = () => {
+    // Здесь можно задать структуру уровней и цен
+    const maxLevel = 10
+    const levelData = [
+      { level: 1, price: 100, upcount: 5 },
+      { level: 2, price: 200, upcount: 6 },
+      { level: 3, price: 500, upcount: 7 },
+      { level: 4, price: 800, upcount: 8 },
+      { level: 5, price: 1200, upcount: 9 },
+      { level: 6, price: 2500, upcount: 10 },
+      { level: 7, price: 5000, upcount: 11 },
+      { level: 8, price: 10000, upcount: 12 },
+      { level: 9, price: 15000, upcount: 13 },
+      { level: 10, price: 30000, upcount: 14 },
+      // Добавьте другие уровни и цены по мере необходимости
+    ];
+
+    // Находим текущий уровень в массиве данных
+    const currentLevel = levelData.find((data) => data.level === speedLevel);
+
+    if (currentLevel && speedLevel < maxLevel) {
+      // Увеличиваем уровень на 1
+      setSpeedLevel((prevLevel) => prevLevel + 1);
+      
+      // Вычитаем цену из общего количества кликов
+      setTotalClicks((prevClicks) => prevClicks - currentLevel.price);
+
+      setSpeedLimit((prevSpeedLimit) => prevSpeedLimit + currentLevel.upcount);
     }
   };
 
@@ -224,12 +370,12 @@ export const Notcoin = ({
               <div className="col-12 mb-2">
                 <div className="totalClicksContainer">
                   <div className="clickIcon"></div> {/* Placeholder for icon */}
-                  <span>{formatNumberWithCommas(totalClicks + 2500)}</span> {/* Display total clicks with commas */}
+                  <span>{formatNumberWithCommas(totalClicks)}</span> {/* Display total clicks with commas */}
                 </div>
               </div>
               <div className="col-12">
                 <div className="rankContainer">
-                  <span id="ph">@username</span>
+                  <span>@{tg.initDataUnsafe.user?.username || 'Unknown User'}</span>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" className="bi bi-dot mx-2" viewBox="0 0 16 16">
                     <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3" />
                   </svg>
@@ -268,7 +414,9 @@ export const Notcoin = ({
                   <span>{formatNumberWithCommas(clickLimit)} / {formatNumberWithCommas(maxClicks)}</span> {/* Display total clicks with commas */}
                 </div>
               </div>
-              <div className='col-12'><button className="btn btn-primary" onClick={handleMultitapIncrease}>Reset</button></div>
+              <div className='col-3 text-center'><button className="transparent-blur-button" onClick={handleMultitapIncrease}>Multitap</button><div>{multitap}</div><div>{multitapLevel} lvl</div></div>
+              <div className='col-3 text-center'><button className="transparent-blur-button" onClick={handleEnegryIncrease}>Energy</button><div>{maxClicks}</div><div>{enegryLevel} lvl</div></div>
+              <div className='col-6 text-center'><button className="transparent-blur-button" onClick={handleSpeedIncrease}>Recharging</button><div>{plusLimitValue}</div><div>{speedLevel} lvl</div></div>
             </div>
           </div>
           <div>
