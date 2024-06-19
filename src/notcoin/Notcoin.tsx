@@ -90,7 +90,7 @@ export const Notcoin = ({
   });
   const [multitap, setMultitap] = useState<number>(() => {
     const savedMultitap = localStorage.getItem('multitap');
-    return savedMultitap ? parseInt(savedMultitap, 10) : 500;
+    return savedMultitap ? parseInt(savedMultitap, 10) : 1;
   });
   const [numbers, setNumbers] = useState<NumberInfo[]>([])
   const [totalClicks, setTotalClicks] = useState<number>(() => {
@@ -103,12 +103,12 @@ export const Notcoin = ({
   })
   const [clickLimit, setClickLimit] = useState<number>(() => {
     const savedClickLimit = localStorage.getItem('clickLimit');
-    return savedClickLimit ? parseInt(savedClickLimit, 10) : 1000000;
+    return savedClickLimit ? parseInt(savedClickLimit, 10) : 1000;
   });
 
   const [maxClicks, setMaxClicks] = useState<number>(() => {
     const savedMaxClicks = localStorage.getItem('maxClicks');
-    return savedMaxClicks ? parseInt(savedMaxClicks, 10) : 1000000;
+    return savedMaxClicks ? parseInt(savedMaxClicks, 10) : 1000;
   }); // Max clicks allowed
 
   const [multitapLevel, setMultitapLevel] = useState<number>(() => {
@@ -128,7 +128,7 @@ export const Notcoin = ({
 
   // Define the thresholds for each rank
   const rankThresholds = [
-    { rank: "Bronze", threshold: 1000, reward: 0},
+    { rank: "Bronze", threshold: 1000, reward: 1000},
     { rank: "Silver", threshold: 5000, reward: 125000},
     { rank: "Gold", threshold: 200000, reward: 250000 },
     { rank: "Platinum", threshold: 2000000, reward: 500000},
