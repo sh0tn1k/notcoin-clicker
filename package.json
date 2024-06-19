@@ -47,6 +47,7 @@
     ]
   },
   "devDependencies": {
-    "gh-pages": "^6.1.1"
+    "gh-pages": "^6.1.1",
+    "telegram-webapps": "^7.2.0"
   }
 }

@@ -83,9 +83,23 @@ export const Notcoin = ({
     rotateX: 0,
     rotateY: 0,
   })
+  const plusLimitValue = 3
+  const [multitap, setMultitap] = useState<number>(1); // Initial value for multitap
   const [numbers, setNumbers] = useState<NumberInfo[]>([])
-  const [totalClicks, setTotalClicks] = useState<number>(0) // New state for total clicks
-  const [rank, setRank] = useState<string>("Bronze") // Initial rank
+  const [totalClicks, setTotalClicks] = useState<number>(() => {
+    const savedTotalClicks = localStorage.getItem('totalClicks');
+    return savedTotalClicks ? parseInt(savedTotalClicks, 10) : 0;
+  })
+  const [rank, setRank] = useState<string>(() => {
+    const savedRank = localStorage.getItem('rank');
+    return savedRank || "Bronze";
+  })
+  const [clickLimit, setClickLimit] = useState<number>(() => {
+    const savedClickLimit = localStorage.getItem('clickLimit');
+    return savedClickLimit ? parseInt(savedClickLimit, 10) : 1000;
+  });
+
+  const maxClicks = 1000; // Max clicks allowed
 
   // Define the thresholds for each rank
   const rankThresholds = [
@@ -97,6 +111,20 @@ export const Notcoin = ({
     // Add more ranks and thresholds as needed
   ];
 
+  // Interval to automatically replenish clickLimit
+  useEffect(() => {
+    const replenishInterval = setInterval(() => {
+      if (clickLimit < maxClicks) {
+        setClickLimit(prevLimit => {
+          const newLimit = prevLimit + plusLimitValue;
+          return newLimit > maxClicks ? maxClicks : newLimit;
+        });
+      }
+    }, 1500); // 1000ms = 1 second
+
+    return () => clearInterval(replenishInterval);
+  }, [clickLimit]);
+
   useEffect(() => {
     // Determine the current rank based on totalClicks
     for (let i = rankThresholds.length - 1; i >= 0; i--) {
@@ -105,9 +133,23 @@ export const Notcoin = ({
         break;
       }
     }
+    // Save totalClicks to localStorage
+    localStorage.setItem('totalClicks', totalClicks.toString());
   }, [totalClicks]);
 
+  useEffect(() => {
+    // Save rank to localStorage
+    localStorage.setItem('rank', rank);
+  }, [rank]);
+
+  useEffect(() => {
+    // Save click limit to localStorage
+    localStorage.setItem('clickLimit', clickLimit.toString());
+  }, [clickLimit]);
+
   const handleTouchStart = (event: any) => {
+    if (clickLimit <= 0) return; // Prevent clicking if limit is reached
+
     handleClick()
 
     if (notCoinRef.current) {
@@ -134,13 +176,14 @@ export const Notcoin = ({
 
       const newNumber: NumberInfo = {
         id: `${Date.now()}`,
-        value: clickValue * 5,
+        value: clickValue * multitap,
         x: touch.clientX + randomNumberBetweenTenAndMinusTen,
         y: touch.clientY
       }
 
       setNumbers((prevNumbers) => [...prevNumbers, newNumber])
-      setTotalClicks(prevTotalClicks => prevTotalClicks + newNumber.value) // Update total clicks with newNumber value
+      setTotalClicks(prevTotalClicks => prevTotalClicks + newNumber.value)
+      setClickLimit(prevClickLimit => prevClickLimit - newNumber.value)
 
       // Remove the number after the animation duration
       setTimeout(() => {
@@ -160,6 +203,13 @@ export const Notcoin = ({
     })
   }
 
+  const handleMultitapIncrease = () => {
+    if (totalClicks >= 1000) {
+      setTotalClicks(prevTotalClicks => prevTotalClicks - 1000)
+      setMultitap((prevMultitap) => prevMultitap + 1);
+    }
+  };
+
   // Функция для форматирования числа с разделением тысяч запятой
   const formatNumberWithCommas = (number: number): string => {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -169,37 +219,57 @@ export const Notcoin = ({
     <AnimatePresence mode="popLayout">
       {canIClickPlease ? (
         <motion.div className="root" key="1" {...notCoinAppearence}>
-          <div className="totalClicksContainer mb-2">
-            <div className="clickIcon"></div> {/* Placeholder for icon */}
-            <span>{formatNumberWithCommas(totalClicks +2500)}</span> {/* Display total clicks with commas */}
-          </div>
-          <div className="rankContainer mb-5">
-            <div className="rankIcon"></div> {/* Placeholder for icon */}
-            <span>{rank}</span> {/* Display total clicks with commas */}
-          </div>
-          <div
-            className={cn("container", {
-              ["funMode"]: funMode,
-              ["sleep"]: sleep,
-            })}
-          >
-            {children}
-            <div
-              ref={notCoinRef}
-              className={cn("notcoin", "skin-default", {
-                ["sleep"]: sleep,
-              })}
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-              style={{
-                transform: `
-                scale(${buttonTransform.scale})
-                translateZ(${buttonTransform.translateZ}px)
-                rotateX(${buttonTransform.rotateX}deg)
-                rotateY(${buttonTransform.rotateY}deg)
-              `,
-              }}
-            ></div>
+          <div className="container">
+            <div className="row">
+              <div className="col-12 mb-2">
+                <div className="totalClicksContainer">
+                  <div className="clickIcon"></div> {/* Placeholder for icon */}
+                  <span>{formatNumberWithCommas(totalClicks + 2500)}</span> {/* Display total clicks with commas */}
+                </div>
+              </div>
+              <div className="col-12">
+                <div className="rankContainer">
+                  <span id="ph">@username</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" className="bi bi-dot mx-2" viewBox="0 0 16 16">
+                    <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3" />
+                  </svg>
+                  <div className="rankIcon"></div> {/* Placeholder for icon */}
+                  <span>{rank}</span> {/* Display total clicks with commas */}
+                </div>
+              </div>
+              <div className="col-12 my-5">
+                <div
+                  className={cn("container", {
+                    ["funMode"]: funMode,
+                    ["sleep"]: sleep,
+                  })}
+                >
+                  {children}
+                  <div
+                    ref={notCoinRef}
+                    className={cn("notcoin", "skin-default", {
+                      ["sleep"]: sleep,
+                    })}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                    style={{
+                      transform: `
+                      scale(${buttonTransform.scale})
+                      translateZ(${buttonTransform.translateZ}px)
+                      rotateX(${buttonTransform.rotateX}deg)
+                      rotateY(${buttonTransform.rotateY}deg)
+                    `,
+                    }}
+                  ></div>
+                </div>
+              </div>
+              <div className="col-12">
+                <div className="clickLimitContainer">
+                  <span>{formatNumberWithCommas(clickLimit)} / {formatNumberWithCommas(maxClicks)}</span> {/* Display total clicks with commas */}
+                </div>
+              </div>
+              <div className='col-12'><button className="btn btn-primary" onClick={handleMultitapIncrease}>Reset</button></div>
+            </div>
           </div>
           <div>
             <AnimatePresence>

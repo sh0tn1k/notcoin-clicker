@@ -69,6 +69,20 @@
   font-size: 40px;
 }
 
+.clickLimitContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+
+.clickLimitContainer span {
+  margin-left: 5px; /* Отступ между иконкой и числом */
+  font-weight: bold;
+  font-size: 25px;
+}
+
 .sleep {
   filter: brightness(0.8) grayscale(1);
 }

@@ -4,7 +4,7 @@ body {
   'SF UI Text', system-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 main {
-  background: #000;
+  background-image: radial-gradient(circle, #697085, black);
   display: flex;
   height: 100vh;
 }
